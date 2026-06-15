@@ -1,0 +1,33 @@
+functions-framework
+Flask
+pandas
+scipy
+
+# Database dependencies
+Flask-SQLAlchemy
+SQLAlchemy
+Werkzeug
+
+# Database drivers
+psycopg2-binary  # PostgreSQL
+pymysql          # MySQL/MariaDB
+
+# Additional utilities
+Flask-WTF        # CSRF protection and forms
+WTForms          # Form validation
+Flask-Migrate    # Database migrations
+alembic          # Migration tool
+
+# Development and testing
+pytest           # Testing framework
+pytest-flask     # Flask testing utilities
+pytest-cov       # Coverage testing
+
+# Data validation and serialization
+marshmallow     # Object serialization
+marshmallow-sqlalchemy  # SQLAlchemy integration
+
+# Utilities
+click            # CLI commands
+python-dotenv    # Environment variable loading
+numpy            # Mathematical operations

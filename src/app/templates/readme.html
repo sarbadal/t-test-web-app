@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T-Test Analysis Web Application - Documentation</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}"">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            color: #2980b9;
+            margin-top: 35px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+        }
+        
+        h3 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        
+        h4 {
+            color: #7f8c8d;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        ul, ol {
+            margin-bottom: 15px;
+            padding-left: 20px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        strong {
+            color: #2c3e50;
+        }
+        
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', Monaco, monospace;
+            color: #e74c3c;
+            font-size: 0.9em;
+        }
+        
+        pre {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 20px 0;
+            border-left: 4px solid #3498db;
+        }
+        
+        pre code {
+            background-color: transparent;
+            color: #ecf0f1;
+            padding: 0;
+        }
+        
+        .json-block {
+            background-color: #2c3e50;
+            color: #f39c12;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+            border-left: 4px solid #f39c12;
+        }
+        
+        .project-structure {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            padding: 20px;
+            border-radius: 5px;
+            font-family: 'Courier New', Monaco, monospace;
+            margin: 20px 0;
+            border-left: 4px solid #95a5a6;
+            white-space: pre;
+            overflow-x: auto;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .project-structure .folder {
+            font-weight: bold;
+            color: #1565c0;
+        }
+        
+        .feature-list {
+            background-color: #e8f5e8;
+            padding: 20px;
+            border-radius: 5px;
+            border-left: 4px solid #27ae60;
+        }
+        
+        .api-response {
+            background-color: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+        
+        .security-note {
+            background-color: #f8d7da;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #dc3545;
+            margin: 15px 0;
+        }
+        
+        .installation-step {
+            background-color: #d1ecf1;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .nav-menu {
+            background-color: #34495e;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-links {
+            display: flex;
+            align-items: center;
+        }
+        
+        .nav-menu a {
+            color: #ecf0f1;
+            text-decoration: none;
+            margin-right: 20px;
+            padding: 5px 10px;
+            border-radius: 3px;
+            transition: background-color 0.3s;
+        }
+        
+        .nav-menu a:hover {
+            background-color: #2c3e50;
+        }
+        
+        .dashboard-btn {
+            background-color: #3498db;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+        
+        .dashboard-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            margin-left: 10px;
+        }
+        
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            align-items: center;
+        }
+        
+        .back-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #3498db;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 50px;
+            text-decoration: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: background-color 0.3s;
+        }
+        
+        .back-to-top:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="nav-menu">
+            <div class="nav-links">
+                <a href="#overview">Overview</a>
+                <a href="#features">Features</a>
+                <a href="#installation">Installation</a>
+                <a href="#usage">Usage</a>
+                <a href="#deployment">Deployment</a>
+                <a href="#development">Development</a>
+            </div>
+            <div class="nav-buttons">
+                <a href="{{ url_for('dashboard.dashboard') }}" class="dashboard-btn">Back to Dashboard</a>
+                <a href="{{ url_for('logout.logout') }}" class="logout-btn">Logout</a>
+            </div>
+        </nav>
+
+        <h1 id="overview">T-Test Analysis Web Application</h1>
+        
+        <p>A Flask-based web application for performing statistical t-tests with an intuitive interface. This application supports three types of t-tests: one-sample, paired, and two-sample t-tests.</p>
+
+        <h2 id="features">Features</h2>
+        
+        <div class="feature-list">
+            <ul>
+                <li><strong>Multiple T-Test Types</strong>: Supports one-sample, paired, and two-sample t-tests</li>
+                <li><strong>JSON Data Upload</strong>: Easy data input via JSON file uploads</li>
+                <li><strong>Configurable Confidence Levels</strong>: Customizable confidence levels for statistical analysis</li>
+                <li><strong>Session Management</strong>: Secure login system with session management</li>
+                <li><strong>Cloud Ready</strong>: Deployable to Google Cloud Functions</li>
+                <li><strong>Statistical Results</strong>: Comprehensive output including t-statistics, p-values, and means</li>
+            </ul>
+        </div>
+
+        <h2 id="project-structure">Project Structure</h2>
+        
+        <div class="project-structure"><span class="folder">t-test/</span>
+├── main.py                             # Application entry point
+├── requirements.txt                    # Python dependencies
+├── deployment.sh                       # Google Cloud deployment script
+├── README.md                           # Project documentation
+├── test_data_*.json                    # Sample data files
+├── <span class="folder">app/</span>                                # Flask application package
+│   ├── __init__.py
+│   ├── env_vars.py                     # Environment variables
+│   ├── run.py                          # Flask app factory
+│   ├── <span class="folder">routes/</span>                         # Application routes
+│   │   ├── analyze.py                  # T-test analysis endpoint
+│   │   ├── dashboard.py                # Dashboard route
+│   │   ├── index.py                    # Home page
+│   │   ├── login.py                    # Authentication
+│   │   ├── logout.py                   # Logout functionality
+│   │   └── make_session.py             # Session management
+│   └── <span class="folder">templates/</span>                      # HTML templates
+│       ├── dashboard.html
+│       ├── password_form.html
+│       └── password_incorrect.html
+└── <span class="folder">ml/</span>                                 # Machine learning/statistics module
+    ├── __init__.py
+    └── ttest.py                        # T-test implementation</div>
+
+        <h2 id="installation">Installation</h2>
+
+        <h3>Prerequisites</h3>
+        <ul>
+            <li>Python 3.11+</li>
+            <li>pip package manager</li>
+        </ul>
+
+        <h3>Local Setup</h3>
+        
+        <div class="installation-step">
+            <strong>Step 1:</strong> Clone or download the project to your local machine
+        </div>
+        
+        <div class="installation-step">
+            <strong>Step 2:</strong> Navigate to the project directory:
+            <pre><code>cd t-test</code></pre>
+        </div>
+        
+        <div class="installation-step">
+            <strong>Step 3:</strong> Install required dependencies:
+            <pre><code>pip install -r requirements.txt</code></pre>
+        </div>
+        
+        <div class="installation-step">
+            <strong>Step 4:</strong> Set up environment variables (create appropriate configuration in <code>app/env_vars.py</code>)
+        </div>
+        
+        <div class="installation-step">
+            <strong>Step 5:</strong> Run the application:
+            <pre><code>python main.py</code></pre>
+        </div>
+
+        <p>The application will be available at <code>http://localhost:5000</code></p>
+
+        <h2 id="usage">Usage</h2>
+
+        <h3>Data Format</h3>
+        
+        <p>The application accepts JSON files with specific formats depending on the type of t-test:</p>
+
+        <h4>One-Sample T-Test</h4>
+        <div class="json-block">
+<code>{
+  "data": [23.5, 25.1, 22.8, 24.3, 26.7, 23.9, 25.5, 24.1]
+}</code>
+        </div>
+
+        <h4>Paired T-Test</h4>
+        <div class="json-block">
+<code>{
+  "before": [120, 118, 125, 122, 119, 124, 121, 123],
+  "after": [115, 112, 118, 116, 113, 117, 114, 116]
+}</code>
+        </div>
+
+        <h4>Two-Sample T-Test</h4>
+        <div class="json-block">
+<code>{
+  "group1": [23.1, 24.5, 22.8, 25.2, 23.7, 24.9],
+  "group2": [21.3, 22.1, 20.8, 22.7, 21.9, 22.4]
+}</code>
+        </div>
+
+        <h3>API Endpoint</h3>
+
+        <h4>POST <code>/analyze</code></h4>
+        
+        <p>Performs t-test analysis on uploaded data.</p>
+        
+        <p><strong>Parameters:</strong></p>
+        <ul>
+            <li><code>file</code>: JSON file containing the data</li>
+            <li><code>confidence</code>: Confidence level (default: 0.95)</li>
+        </ul>
+        
+        <div class="security-note">
+            <strong>Authentication:</strong> Requires active session (user must be logged in)
+        </div>
+        
+        <p><strong>Response:</strong></p>
+        <div class="api-response">
+<code>{
+  "test_type": "One-sample t-test",
+  "sample_size": 20,
+  "confidence_level": 0.95,
+  "t_statistic": 15.23,
+  "p_value": 0.0001,
+  "mean": 24.5
+}</code>
+        </div>
+
+        <h3>Statistical Tests</h3>
+        
+        <ol>
+            <li><strong>One-Sample T-Test</strong>: Tests if the sample mean differs significantly from zero</li>
+            <li><strong>Paired T-Test</strong>: Compares two related samples (e.g., before/after measurements)</li>
+            <li><strong>Two-Sample T-Test</strong>: Compares means of two independent groups</li>
+        </ol>
+
+        <h2 id="sample-data">Sample Data</h2>
+        
+        <p>The repository includes several sample data files for testing:</p>
+        
+        <ul>
+            <li><code>test_data_one_sample.json</code>: One-sample t-test data</li>
+            <li><code>test_data_paired.json</code>: Paired t-test data (small sample)</li>
+            <li><code>test_data_paired_large.json</code>: Paired t-test data (large sample)</li>
+            <li><code>test_data_two_sample.json</code>: Two-sample t-test data</li>
+            <li><code>test_data_two_sample_large.json</code>: Two-sample t-test data (large sample)</li>
+        </ul>
+
+        <h2 id="deployment">Cloud Deployment</h2>
+
+        <h3>Google Cloud Functions</h3>
+        
+        <p>The application is configured for deployment to Google Cloud Functions using the provided deployment script.</p>
+        
+        <ol>
+            <li>Ensure you have the Google Cloud CLI installed and configured</li>
+            <li>Update the project ID in <code>deployment.sh</code> if necessary</li>
+            <li>Run the deployment script:
+                <pre><code>./deployment.sh</code></pre>
+            </li>
+        </ol>
+        
+        <p>The function will be deployed as <code>t-test-analysis</code> in the <code>us-central1</code> region.</p>
+
+        <h2 id="dependencies">Dependencies</h2>
+        
+        <ul>
+            <li><strong>Flask 3.0.0</strong>: Web framework</li>
+            <li><strong>pandas 2.1.4</strong>: Data manipulation and analysis</li>
+            <li><strong>scipy 1.13.1</strong>: Statistical functions</li>
+            <li><strong>functions-framework 3.5.0</strong>: Google Cloud Functions framework</li>
+        </ul>
+
+        <h2 id="security">Security Features</h2>
+        
+        <div class="security-note">
+            <ul>
+                <li>Session-based authentication</li>
+                <li>Secure session management with configurable timeout</li>
+                <li>Protected analysis endpoints requiring authentication</li>
+            </ul>
+        </div>
+
+        <h2 id="development">Development</h2>
+
+        <h3>Local Development</h3>
+        
+        <p>For local development, the application runs in debug mode with the following configuration:</p>
+        <ul>
+            <li>Host: <code>0.0.0.0</code></li>
+            <li>Port: <code>5000</code></li>
+            <li>Debug: <code>True</code></li>
+        </ul>
+
+        <h3>Testing</h3>
+        
+        <p>Use the provided sample JSON files to test different types of t-tests:</p>
+        
+        <ol>
+            <li>Upload a sample data file through the web interface</li>
+            <li>Select appropriate confidence level</li>
+            <li>Submit for analysis</li>
+            <li>Review the statistical results</li>
+        </ol>
+
+        <h2 id="license">License</h2>
+        
+        <p>This project is available for educational and research purposes.</p>
+
+        <h2 id="contributing">Contributing</h2>
+        
+        <ol>
+            <li>Fork the repository</li>
+            <li>Create a feature branch</li>
+            <li>Make your changes</li>
+            <li>Test thoroughly</li>
+            <li>Submit a pull request</li>
+        </ol>
+
+        <h2 id="support">Support</h2>
+        
+        <p>For issues or questions regarding the t-test analysis application, please review the code documentation and sample data formats provided.</p>
+    </div>
+
+    <a href="#overview" class="back-to-top">↑ Top</a>
+</body>
+</html>

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T-Test Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}"">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .upload-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .file-input {
+            margin: 10px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .file-input input[type="file"] {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            min-width: 300px;
+        }
+        .file-input input[type="file"]:hover {
+            border-color: #007bff;
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .results-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+        .result-item {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: white;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+        }
+        .significant {
+            border-left-color: #28a745;
+        }
+        .not-significant {
+            border-left-color: #dc3545;
+        }
+        .error {
+            color: #dc3545;
+            background-color: #f8d7da;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        .info-box {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .info-box h3 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+        }
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+        .nav-btn {
+            background-color: #28a745;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            margin-right: 10px;
+        }
+        .nav-btn:hover {
+            background-color: #218838;
+        }
+        .api-btn {
+            background-color: #6f42c1;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            margin-top: 15px;
+            display: inline-block;
+        }
+        .api-btn:hover {
+            background-color: #5a359a;
+        }
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .results-header h3 {
+            margin: 0;
+        }
+        .footer {
+            margin-top: 40px;
+            padding: 20px 0;
+            text-align: center;
+            border-top: 1px solid #ddd;
+            color: #666;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 style="margin: 0; color: #0063cc;">T-Test Analysis Dashboard</h1>
+            <div>
+                <a href="{{ url_for('readme.readme') }}" class="nav-btn">Documentation</a>
+                <a href="{{ url_for('logout.logout') }}" class="logout-btn">Logout</a>
+            </div>
+        </div>
+        
+        <div class="info-box">
+            <h3>Data Format Requirements</h3>
+            <p>Upload a JSON file with your data in one of these formats:</p>
+            <ul>
+                <li><strong>One-sample t-test:</strong> <code>{"data": [1, 2, 3, 4, 5]}</code></li>
+                <li><strong>Two-sample t-test:</strong> <code>{"group1": [1, 2, 3], "group2": [4, 5, 6]}</code></li>
+                <li><strong>Paired t-test:</strong> <code>{"before": [1, 2, 3], "after": [2, 3, 4]}</code></li>
+            </ul>
+        </div>
+
+        <div class="upload-section">
+            <h3>Upload Your Data</h3>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="file-input">
+                    <input type="file" id="dataFile" name="file" accept=".json" required>
+                </div>
+                <div style="margin: 15px 0;">
+                    <label for="confidence">Confidence Level: </label>
+                    <select id="confidence" name="confidence">
+                        <option value="0.90">90%</option>
+                        <option value="0.95" selected>95%</option>
+                        <option value="0.99">99%</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">Run T-Test Analysis</button>
+            </form>
+        </div>
+
+        <div id="loadingMessage" class="loading" style="display: none;">
+            Analyzing data...
+        </div>
+
+        <div id="errorMessage" class="error" style="display: none;"></div>
+
+        <div id="resultsSection" class="results-section">
+            <div class="results-header">
+                <h3>T-Test Results</h3>
+                <a href="{{ url_for('analyze.get_ttest_result') }}" target="_blank" class="api-btn" id="apiBtn" style="display: none;">View Results as JSON</a>
+            </div>
+            <div id="results"></div>
+        </div>
+        
+        <div class="footer">
+            <p>&copy; 2025 T-Test Analysis Dashboard. Built with Python and Flask.</p>
+            <p>Statistical analysis made simple and accessible.</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            const fileInput = document.getElementById('dataFile');
+            const confidenceSelect = document.getElementById('confidence');
+            
+            if (!fileInput.files[0]) {
+                showError('Please select a JSON file to upload.');
+                return;
+            }
+            
+            formData.append('file', fileInput.files[0]);
+            formData.append('confidence', confidenceSelect.value);
+            
+            // Show loading message
+            document.getElementById('loadingMessage').style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('apiBtn').style.display = 'none';
+            
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+
+                const contentType = response.headers.get('content-type') || '';
+
+                if (!contentType.includes('application/json')) {
+                    const responseText = await response.text();
+                    document.getElementById('loadingMessage').style.display = 'none';
+
+                    if (response.redirected || response.status === 401 || response.status === 403) {
+                        showError('Session expired. Please log in again.');
+                    } else {
+                        showError('Server returned a non-JSON response. Please try again.');
+                        console.error('Non-JSON response from /analyze:', responseText);
+                    }
+                    return;
+                }
+
+                const responseBody = await response.text();
+                let result;
+                try {
+                    result = JSON.parse(responseBody);
+                } catch (parseError) {
+                    document.getElementById('loadingMessage').style.display = 'none';
+                    showError('Server returned invalid JSON. Please log in again and retry.');
+                    console.error('Invalid JSON response from /analyze:', parseError, responseBody);
+                    return;
+                }
+                
+                document.getElementById('loadingMessage').style.display = 'none';
+                
+                if (response.ok) {
+                    displayResults(result);
+                } else {
+                    showError(result.error || 'An error occurred during analysis.');
+                }
+            } catch (error) {
+                document.getElementById('loadingMessage').style.display = 'none';
+                showError('Network error: ' + error.message);
+            }
+        });
+        
+        function displayResults(result) {
+            const resultsDiv = document.getElementById('results');
+            const isSignificant = result.p_value < (1 - result.confidence_level);
+            const significanceClass = isSignificant ? 'significant' : 'not-significant';
+            
+            resultsDiv.innerHTML = `
+                <div class="result-item">
+                    <strong>Test Type:</strong> ${result.test_type}
+                </div>
+                <div class="result-item">
+                    <strong>Sample Size:</strong> ${result.sample_size}
+                </div>
+                <div class="result-item">
+                    <strong>Confidence Level:</strong> ${(result.confidence_level * 100).toFixed(0)}%
+                </div>
+                <div class="result-item">
+                    <strong>T-Statistic:</strong> ${result.t_statistic.toFixed(4)}
+                </div>
+                <div class="result-item">
+                    <strong>P-Value:</strong> ${result.p_value.toFixed(6)}
+                </div>
+                <div class="result-item ${significanceClass}">
+                    <strong>Statistical Significance:</strong> ${isSignificant ? 'Yes' : 'No'} 
+                    (α = ${(1 - result.confidence_level).toFixed(2)})
+                </div>
+                ${result.mean ? `<div class="result-item"><strong>Sample Mean:</strong> ${result.mean.toFixed(4)}</div>` : ''}
+                ${result.mean_difference ? `<div class="result-item"><strong>Mean Difference:</strong> ${result.mean_difference.toFixed(4)}</div>` : ''}
+            `;
+            
+            document.getElementById('resultsSection').style.display = 'block';
+            document.getElementById('apiBtn').style.display = 'inline-block';
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
