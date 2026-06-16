@@ -33,3 +33,5 @@ python-dotenv    # Environment variable loading
 numpy            # Mathematical operations
 
 requests         # HTTP requests
+
+google-cloud-storage  # Google Cloud Storage client library

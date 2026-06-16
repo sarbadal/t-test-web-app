@@ -297,16 +297,78 @@ The repository includes several sample data files for testing in `sample_data/`:
 
 ### Google Cloud Functions
 
-The application is configured for deployment to Google Cloud Functions using the provided deployment script.
+This project includes a deployment helper in `deployment.py` that:
 
-1. Ensure you have the Google Cloud CLI installed and configured
-2. Update the project ID in `deployment.sh` if necessary
-3. Run the deployment script:
-   ```bash
-   ./deployment.sh
-   ```
+1. Uploads static assets from `src/app/static` to a GCS bucket.
+2. Builds production environment variables (including `STATIC_BASE_URL`).
+3. Deploys a Gen2 HTTP Cloud Function using `gcloud functions deploy`.
 
-The function will be deployed as `t-test-analysis` in the `us-central1` region.
+#### Prerequisites
+
+- Google Cloud SDK installed (`gcloud`)
+- Authenticated CLI session
+- Billing-enabled GCP project
+- Required APIs enabled:
+  - Cloud Functions API
+  - Cloud Build API
+  - Artifact Registry API
+  - Cloud Run API
+
+Example setup:
+
+```bash
+gcloud auth login
+gcloud config set project YOUR_PROJECT_ID
+gcloud services enable cloudfunctions.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com run.googleapis.com
+```
+
+#### Deploy command (recommended)
+
+Run from repository root:
+
+```bash
+python deployment.py \
+  --project-id YOUR_PROJECT_ID \
+  --function-name t-test-analysis \
+  --region us-central1 \
+  --runtime python311 \
+  --entry-point entry_point \
+  --source . \
+  --bucket YOUR_STATIC_BUCKET \
+  --allow-unauthenticated \
+  --env APP_SECRET=YOUR_SECRET \
+  --env APP_PASSWORD=YOUR_APP_PASSWORD \
+  --env ENV_TYPE=prod
+```
+
+#### What gets deployed
+
+- Function source from the project root (`--source .`), including:
+  - `main.py`
+  - `requirements.txt`
+  - `src/` package
+  - `src/instance/ttest_analysis.db` (included by `.gcloudignore`)
+- Static files are uploaded to GCS separately from `src/app/static`.
+
+#### Useful flags
+
+- `--dry-run`: print computed values and deployment command without executing
+- `--skip-upload`: skip static upload (requires `--env STATIC_BASE_URL=...`)
+- `--static-prefix`: control GCS object prefix (default `static/<timestamp>`)
+- `--url-prefix`: base URL path if app is mounted under a subpath (for example `/t-test`)
+- `--write-env-file .env.prod`: write resolved production env vars to file
+
+#### Verify deployment
+
+```bash
+gcloud functions describe t-test-analysis --gen2 --region us-central1
+```
+
+Open the function URL from the output and verify:
+
+1. Login page loads
+2. Guest login works
+3. Analysis endpoints return expected responses
 
 ## Dependencies
 
