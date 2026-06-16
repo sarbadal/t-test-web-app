@@ -12,6 +12,7 @@ Usage:
     python db_init.py init          # Initialize database and create tables
     python db_init.py seed          # Seed database with initial data
     python db_init.py reset         # Drop and recreate all tables
+    python db_init.py reset-password # Reset a user's password
     python db_init.py backup <path> # Backup database (SQLite only)
     python db_init.py restore <path> # Restore database (SQLite only)
     python db_init.py info          # Show database information
@@ -43,9 +44,13 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Keep CLI output clean unless there's a warning/error.
+# src.app.run configures root logging at INFO during import, so force WARNING here.
+logging.getLogger().setLevel(logging.WARNING)
 logging.getLogger('sqlalchemy.engine').setLevel(logging.WARNING)
 logging.getLogger('sqlalchemy.pool').setLevel(logging.WARNING)
-logging.getLogger('app').setLevel(logging.WARNING)
+logging.getLogger('src.app').setLevel(logging.WARNING)
+logging.getLogger('src.app.run').setLevel(logging.WARNING)
+logging.getLogger('src.app.utils.database').setLevel(logging.WARNING)
 
 
 def _cli_app():
@@ -264,6 +269,33 @@ def create_user():
         except Exception as e:
             click.echo(f"✗ Error creating user: {str(e)}", err=True)
             sys.exit(1)
+
+
+@cli.command()
+@click.argument("username")
+def reset_password(username):
+    """Reset password for an existing user."""
+    app = _cli_app()
+    with app.app_context():
+        from src.app.services import UserService
+
+        user = UserService.get_user_by_username(username)
+        if not user:
+            click.echo(f"✗ User '{username}' not found!", err=True)
+            sys.exit(1)
+
+        new_password = click.prompt(
+            f"New password for '{username}'",
+            hide_input=True,
+            confirmation_prompt=True,
+        )
+
+        success = UserService.update_user_password(user.id, new_password)
+        if not success:
+            click.echo(f"✗ Failed to reset password for '{username}'", err=True)
+            sys.exit(1)
+
+        click.echo(f"✓ Password reset successfully for '{username}'")
 
 
 @cli.command()

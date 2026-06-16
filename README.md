@@ -91,6 +91,13 @@ python db_init.py init
 python db_init.py seed
 python db_init.py create-user
 python db_init.py create-admin
+python db_init.py reset-password <username>
+```
+
+Example:
+
+```bash
+python db_init.py reset-password analyst
 ```
 
 ## Usage
