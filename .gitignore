@@ -43,3 +43,5 @@ src/instance/*
 *.db
 *.sqlite
 *.sqlite3
+
+cookies.txt

@@ -11,7 +11,7 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             line-height: 1.6;
             color: #333;
-            max-width: 1200px;
+            max-width: 960px;
             margin: 0 auto;
             padding: 20px;
             background-color: #f8f9fa;
@@ -160,22 +160,26 @@
             border-radius: 5px;
             margin-bottom: 30px;
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-start;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 10px 16px;
         }
         
         .nav-links {
             display: flex;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
         }
         
         .nav-menu a {
             color: #ecf0f1;
             text-decoration: none;
-            margin-right: 20px;
             padding: 5px 10px;
             border-radius: 3px;
             transition: background-color 0.3s;
+            white-space: nowrap;
         }
         
         .nav-menu a:hover {
@@ -191,7 +195,7 @@
             cursor: pointer;
             font-size: 14px;
             text-decoration: none;
-            margin-left: 20px;
+            margin-left: 0;
         }
         
         .dashboard-btn:hover {
@@ -207,7 +211,7 @@
             cursor: pointer;
             font-size: 14px;
             text-decoration: none;
-            margin-left: 10px;
+            margin-left: 0;
         }
         
         .logout-btn:hover {
@@ -217,6 +221,25 @@
         .nav-buttons {
             display: flex;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: flex-start;
+        }
+
+        @media (max-width: 860px) {
+            .nav-menu {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .nav-buttons {
+                justify-content: flex-start;
+            }
+
+            .dashboard-btn,
+            .logout-btn {
+                margin-left: 0;
+            }
         }
         
         .back-to-top {
@@ -407,6 +430,118 @@
   "mean": 24.5
 }</code>
         </div>
+
+        <h3>Programmatic API Calls (curl)</h3>
+
+        <p>All API routes are protected by session authentication. Use a login call first, save cookies, and then pass the saved cookie jar in subsequent requests.</p>
+
+        <ol>
+            <li>
+                Login and save session cookie:
+                <pre><code>curl -i -c cookies.txt -X POST http://localhost:5000/login \
+  -d "username=your_username" \
+  -d "password=your_password"</code></pre>
+            </li>
+            <li>
+                Upload a JSON file and run analysis:
+                <pre><code>curl -i -b cookies.txt -X POST http://localhost:5000/analyze \
+  -H "Accept: application/json" \
+  -F "file=@sample_data/test_data_one_sample.json;type=application/json" \
+  -F "confidence=0.95" \
+  -F "dataset_name=my_dataset" \
+  -F "analysis_name=my_analysis"</code></pre>
+            </li>
+            <li>
+                Fetch latest analysis result payload:
+                <pre><code>curl -i -b cookies.txt http://localhost:5000/api/ttest-result</code></pre>
+            </li>
+            <li>
+                Fetch analysis history (optional):
+                <pre><code>curl -i -b cookies.txt "http://localhost:5000/api/analyses?limit=20"</code></pre>
+            </li>
+            <li>
+                Fetch a specific analysis by ID (optional):
+                <pre><code>curl -i -b cookies.txt http://localhost:5000/api/analyses/1</code></pre>
+            </li>
+            <li>
+                Delete an analysis by ID (optional):
+                <pre><code>curl -i -b cookies.txt -X DELETE http://localhost:5000/api/analyses/1</code></pre>
+            </li>
+            <li>
+                Fetch user datasets and summary (optional):
+                <pre><code>curl -i -b cookies.txt http://localhost:5000/api/datasets
+curl -i -b cookies.txt http://localhost:5000/api/summary</code></pre>
+            </li>
+        </ol>
+
+        <p><strong>Notes:</strong></p>
+        <ul>
+            <li>If the session cookie is missing or expired, endpoints return <code>401 Authentication required</code>.</li>
+            <li>The <code>/analyze</code> endpoint currently expects multipart form upload with a <code>file</code> field and <code>.json</code> file extension.</li>
+            <li>Confidence must be a number between <code>0</code> and <code>1</code> (for example <code>0.90</code>, <code>0.95</code>, <code>0.99</code>).</li>
+            <li>Raw JSON request body for <code>/analyze</code> is not supported by default; this route currently reads from uploaded files.</li>
+        </ul>
+
+        <h3>Programmatic API Calls (Python <code>requests</code>)</h3>
+
+        <p>Install dependency:</p>
+        <pre><code>pip install requests</code></pre>
+
+        <p>Example script:</p>
+        <pre><code>import json
+from pathlib import Path
+
+import requests
+
+
+BASE_URL = "http://localhost:5000"
+USERNAME = "your_username"
+PASSWORD = "your_password"
+JSON_FILE = Path("sample_data/test_data_one_sample.json")
+
+
+def main() -> None:
+    session = requests.Session()
+
+    # 1) Login and keep session cookie
+    login_resp = session.post(
+        f"{BASE_URL}/login",
+        data={"username": USERNAME, "password": PASSWORD},
+        timeout=30,
+    )
+    print("Login status:", login_resp.status_code)
+    if login_resp.status_code >= 400:
+        print("Login failed:", login_resp.text)
+        return
+
+    # 2) Upload JSON file to /analyze
+    with JSON_FILE.open("rb") as fh:
+        analyze_resp = session.post(
+            f"{BASE_URL}/analyze",
+            headers={"Accept": "application/json"},
+            files={"file": (JSON_FILE.name, fh, "application/json")},
+            data={
+                "confidence": "0.95",
+                "dataset_name": "api_dataset",
+                "analysis_name": "api_analysis",
+            },
+            timeout=60,
+        )
+
+    print("Analyze status:", analyze_resp.status_code)
+    print(json.dumps(analyze_resp.json(), indent=2))
+
+    # 3) Get latest result as JSON
+    latest_resp = session.get(f"{BASE_URL}/api/ttest-result", timeout=30)
+    print("Latest result status:", latest_resp.status_code)
+    print(json.dumps(latest_resp.json(), indent=2))
+
+
+if __name__ == "__main__":
+    main()</code></pre>
+
+        <p>You can also use the ready-to-run example file in this repo:</p>
+        <pre><code>python programmatic_api_call.py</code></pre>
 
         <h3>Statistical Tests</h3>
         

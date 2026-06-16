@@ -31,3 +31,5 @@ marshmallow-sqlalchemy  # SQLAlchemy integration
 click            # CLI commands
 python-dotenv    # Environment variable loading
 numpy            # Mathematical operations
+
+requests         # HTTP requests

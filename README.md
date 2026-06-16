@@ -146,6 +146,137 @@ Performs t-test analysis on uploaded data.
 }
 ```
 
+### Programmatic API Calls (curl)
+
+All API routes are protected by session authentication. Use a login call first, save cookies, and then pass the saved cookie jar in subsequent requests.
+
+1. Login and save session cookie:
+
+```bash
+curl -i -c cookies.txt -X POST http://localhost:5000/login \
+  -d "username=your_username" \
+  -d "password=your_password"
+```
+
+2. Upload a JSON file and run analysis:
+
+```bash
+curl -i -b cookies.txt -X POST http://localhost:5000/analyze \
+  -H "Accept: application/json" \
+  -F "file=@sample_data/test_data_one_sample.json;type=application/json" \
+  -F "confidence=0.95" \
+  -F "dataset_name=my_dataset" \
+  -F "analysis_name=my_analysis"
+```
+
+3. Fetch latest analysis result payload:
+
+```bash
+curl -i -b cookies.txt http://localhost:5000/api/ttest-result
+```
+
+4. Fetch analysis history (optional):
+
+```bash
+curl -i -b cookies.txt "http://localhost:5000/api/analyses?limit=20"
+```
+
+5. Fetch a specific analysis by ID (optional):
+
+```bash
+curl -i -b cookies.txt http://localhost:5000/api/analyses/1
+```
+
+6. Delete an analysis by ID (optional):
+
+```bash
+curl -i -b cookies.txt -X DELETE http://localhost:5000/api/analyses/1
+```
+
+7. Fetch user datasets and summary (optional):
+
+```bash
+curl -i -b cookies.txt http://localhost:5000/api/datasets
+curl -i -b cookies.txt http://localhost:5000/api/summary
+```
+
+Notes:
+
+- If the session cookie is missing or expired, endpoints return `401 Authentication required`.
+- The `/analyze` endpoint currently expects multipart form upload with a `file` field and `.json` file extension.
+- Confidence must be a number between `0` and `1` (for example `0.90`, `0.95`, `0.99`).
+- Raw JSON request body for `/analyze` is not supported by default; this route currently reads from uploaded files.
+
+### Programmatic API Calls (Python `requests`)
+
+Install dependency:
+
+```bash
+pip install requests
+```
+
+Example script:
+
+```python
+import json
+from pathlib import Path
+
+import requests
+
+
+BASE_URL = "http://localhost:5000"
+USERNAME = "your_username"
+PASSWORD = "your_password"
+JSON_FILE = Path("sample_data/test_data_one_sample.json")
+
+
+def main() -> None:
+  session = requests.Session()
+
+  # 1) Login and keep session cookie
+  login_resp = session.post(
+    f"{BASE_URL}/login",
+    data={"username": USERNAME, "password": PASSWORD},
+    timeout=30,
+  )
+  print("Login status:", login_resp.status_code)
+  if login_resp.status_code >= 400:
+    print("Login failed:", login_resp.text)
+    return
+
+  # 2) Upload JSON file to /analyze
+  with JSON_FILE.open("rb") as fh:
+    analyze_resp = session.post(
+      f"{BASE_URL}/analyze",
+      headers={"Accept": "application/json"},
+      files={"file": (JSON_FILE.name, fh, "application/json")},
+      data={
+        "confidence": "0.95",
+        "dataset_name": "api_dataset",
+        "analysis_name": "api_analysis",
+      },
+      timeout=60,
+    )
+
+  print("Analyze status:", analyze_resp.status_code)
+  print(json.dumps(analyze_resp.json(), indent=2))
+
+  # 3) Get latest result as JSON
+  latest_resp = session.get(f"{BASE_URL}/api/ttest-result", timeout=30)
+  print("Latest result status:", latest_resp.status_code)
+  print(json.dumps(latest_resp.json(), indent=2))
+
+
+if __name__ == "__main__":
+  main()
+```
+
+You can also use the ready-to-run example file in this repo:
+
+```bash
+python programmatic_api_call.py
+```
+
 ### Statistical Tests
 
 1. **One-Sample T-Test**: Tests if the sample mean differs significantly from zero
