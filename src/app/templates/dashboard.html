@@ -252,12 +252,14 @@
         </div>
         
         <div class="footer">
-            <p>&copy; 2025 T-Test Analysis Dashboard. Built with Python and Flask.</p>
+            <p>&copy; <span id="currentYear"></span> T-Test Analysis Dashboard. Built with Python and Flask.</p>
             <p>Statistical analysis made simple and accessible.</p>
         </div>
     </div>
 
     <script>
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
         document.getElementById('uploadForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
