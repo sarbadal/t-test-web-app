@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>T-Test Analysis Web Application - Documentation</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}"">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -243,6 +243,7 @@
             <div class="nav-links">
                 <a href="#overview">Overview</a>
                 <a href="#features">Features</a>
+                <a href="#project-structure">Structure</a>
                 <a href="#installation">Installation</a>
                 <a href="#usage">Usage</a>
                 <a href="#deployment">Deployment</a>
@@ -274,29 +275,28 @@
         <h2 id="project-structure">Project Structure</h2>
         
         <div class="project-structure"><span class="folder">t-test/</span>
-├── main.py                             # Application entry point
-├── requirements.txt                    # Python dependencies
-├── deployment.sh                       # Google Cloud deployment script
-├── README.md                           # Project documentation
-├── test_data_*.json                    # Sample data files
-├── <span class="folder">app/</span>                                # Flask application package
-│   ├── __init__.py
-│   ├── env_vars.py                     # Environment variables
-│   ├── run.py                          # Flask app factory
-│   ├── <span class="folder">routes/</span>                         # Application routes
-│   │   ├── analyze.py                  # T-test analysis endpoint
-│   │   ├── dashboard.py                # Dashboard route
-│   │   ├── index.py                    # Home page
-│   │   ├── login.py                    # Authentication
-│   │   ├── logout.py                   # Logout functionality
-│   │   └── make_session.py             # Session management
-│   └── <span class="folder">templates/</span>                      # HTML templates
-│       ├── dashboard.html
-│       ├── password_form.html
-│       └── password_incorrect.html
-└── <span class="folder">ml/</span>                                 # Machine learning/statistics module
-    ├── __init__.py
-    └── ttest.py                        # T-test implementation</div>
+    ├── main.py                   # Application entry point
+    ├── db_init.py                # Database management CLI
+    ├── requirements.txt          # Python dependencies
+    ├── deployment.sh             # Google Cloud deployment script
+    ├── README.md                 # Project documentation
+    ├── <span class="folder">sample_data/</span>              # Sample JSON data files
+    ├── <span class="folder">src/</span>
+    │   ├── <span class="folder">app/</span>                  # Flask application package
+    │   │   ├── __init__.py
+    │   │   ├── env_vars.py       # Environment variables
+    │   │   ├── run.py            # Flask app factory
+    │   │   ├── <span class="folder">routes/</span>           # Application routes
+    │   │   ├── <span class="folder">services/</span>         # Business logic layer
+    │   │   ├── <span class="folder">models/</span>           # SQLAlchemy models
+    │   │   ├── <span class="folder">utils/</span>            # Utility modules
+    │   │   ├── <span class="folder">templates/</span>        # HTML templates
+    │   │   └── <span class="folder">static/</span>           # Static assets
+    │   ├── <span class="folder">ml/</span>                   # Statistics module
+    │   │   ├── __init__.py
+    │   │   └── ttest.py
+    │   └── <span class="folder">instance/</span>             # Flask instance folder (SQLite DB lives here by default)
+    └── <span class="folder">tests/</span>                    # Automated tests</div>
 
         <h2 id="installation">Installation</h2>
 
@@ -323,7 +323,7 @@
         </div>
         
         <div class="installation-step">
-            <strong>Step 4:</strong> Set up environment variables (create appropriate configuration in <code>app/env_vars.py</code>)
+            <strong>Step 4:</strong> Set up environment variables (configure values in <code>src/app/env_vars.py</code>, or use environment variables)
         </div>
         
         <div class="installation-step">
@@ -332,6 +332,24 @@
         </div>
 
         <p>The application will be available at <code>http://localhost:5000</code></p>
+
+        <h3>Database and instance path</h3>
+        <ul>
+            <li>The Flask <code>instance_path</code> is explicitly configured to <code>src/instance</code>.</li>
+            <li>By default, SQLite is stored at <code>src/instance/ttest_analysis.db</code>.</li>
+            <li>You can override this by setting the <code>DATABASE_URL</code> environment variable.</li>
+        </ul>
+
+        <p>Example custom database URL:</p>
+        <pre><code>export DATABASE_URL="sqlite:////absolute/path/to/custom.db"</code></pre>
+
+        <h3>Database CLI commands</h3>
+        <p>Use the built-in CLI for initialization, seeding, and user creation:</p>
+        <pre><code>python db_init.py --help
+    python db_init.py init
+    python db_init.py seed
+    python db_init.py create-user
+    python db_init.py create-admin</code></pre>
 
         <h2 id="usage">Usage</h2>
 
@@ -400,14 +418,14 @@
 
         <h2 id="sample-data">Sample Data</h2>
         
-        <p>The repository includes several sample data files for testing:</p>
+        <p>The repository includes several sample data files for testing in <code>sample_data/</code>:</p>
         
         <ul>
-            <li><code>test_data_one_sample.json</code>: One-sample t-test data</li>
-            <li><code>test_data_paired.json</code>: Paired t-test data (small sample)</li>
-            <li><code>test_data_paired_large.json</code>: Paired t-test data (large sample)</li>
-            <li><code>test_data_two_sample.json</code>: Two-sample t-test data</li>
-            <li><code>test_data_two_sample_large.json</code>: Two-sample t-test data (large sample)</li>
+            <li><code>sample_data/test_data_one_sample.json</code>: One-sample t-test data</li>
+            <li><code>sample_data/test_data_paired.json</code>: Paired t-test data (small sample)</li>
+            <li><code>sample_data/test_data_paired_large.json</code>: Paired t-test data (large sample)</li>
+            <li><code>sample_data/test_data_two_sample.json</code>: Two-sample t-test data</li>
+            <li><code>sample_data/test_data_two_sample_large.json</code>: Two-sample t-test data (large sample)</li>
         </ul>
 
         <h2 id="deployment">Cloud Deployment</h2>

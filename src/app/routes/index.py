@@ -7,4 +7,4 @@ def home() -> str:
     """Alternative route for the home (same as index)."""
     if not session.get("logged_in"):
         return redirect(url_for("login.login"))
-    return render_template('dashboard.html')
+    return render_template('dashboard.html', username=session.get("username"))

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>T-Test Dashboard</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}"">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -110,6 +110,22 @@
             align-items: center;
             margin-bottom: 30px;
         }
+        .header-title {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .user-chip {
+            display: inline-block;
+            width: fit-content;
+            background-color: #eaf4ff;
+            color: #0056b3;
+            border: 1px solid #bcdcff;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 13px;
+            font-weight: 600;
+        }
         .logout-btn {
             background-color: #dc3545;
             color: white;
@@ -181,7 +197,12 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1 style="margin: 0; color: #0063cc;">T-Test Analysis Dashboard</h1>
+            <div class="header-title">
+                <h1 style="margin: 0; color: #0063cc;">T-Test Analysis Dashboard</h1>
+                {% if username %}
+                <span class="user-chip">Logged in as: {{ username }}</span>
+                {% endif %}
+            </div>
             <div>
                 <a href="{{ url_for('readme.readme') }}" class="nav-btn">Documentation</a>
                 <a href="{{ url_for('logout.logout') }}" class="logout-btn">Logout</a>
