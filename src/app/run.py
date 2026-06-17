@@ -46,8 +46,10 @@ def override_url_for() -> dict:
         # For static, switch depending on ENV
         filename = values.get("filename", "")
         if app.config["ENV_TYPE"] == "prod":
-            gcs_bucket_url = app.config.get("GCS_BUCKET_URL")
-            return f"{gcs_bucket_url}/{filename}"
+            static_base_url = app.config.get("STATIC_BASE_URL") or app.config.get("GCS_BUCKET_URL")
+            if static_base_url:
+                return f"{static_base_url.rstrip('/')}/{filename.lstrip('/')}"
+            return url_for(endpoint, **values)
         else:
             return url_for(endpoint, **values)
  

@@ -13,6 +13,7 @@ def get_gcs_bucket_url(prefix: str = env_vars.GCS_BUCKET_PREFIX) -> str:
 class Config:
     # Environment configuration
     ENV_TYPE = env_vars.ENV_TYPE
+    STATIC_BASE_URL = env_vars.STATIC_BASE_URL
     GCS_BUCKET_URL = get_gcs_bucket_url()
 
     # File types or folders that should be served from GCS

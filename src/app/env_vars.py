@@ -11,6 +11,7 @@ DASHBOARD_FOOTER = os.getenv("DASHBOARD_FOOTER", "© 2023 OGS. All rights reserv
 GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME", "t-test-analysis")
 GCS_BUCKET_PREFIX = os.getenv("GCS_BUCKET_PREFIX", "t-test-analysis/t-test/app")
 GCS_BLOB_BASE_URL = os.getenv("GCS_BLOB_BASE_URL", "storage.googleapis.com")
+STATIC_BASE_URL = os.getenv("STATIC_BASE_URL", "")
 
 # Database configuration
 _SRC_DIR = Path(__file__).resolve().parents[1]
