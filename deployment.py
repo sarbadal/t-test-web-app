@@ -11,7 +11,6 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import mimetypes
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -53,6 +52,11 @@ def parse_args() -> argparse.Namespace:
 	parser.add_argument("--region", default="us-central1", help="GCP region")
 	parser.add_argument("--runtime", default="python311", help="Cloud Function runtime")
 	parser.add_argument("--entry-point", default="entry_point", help="Function entry point")
+	parser.add_argument(
+		"--function-source",
+		default="main.py",
+		help="Function source file relative to --source (used for GOOGLE_FUNCTION_SOURCE).",
+	)
 	parser.add_argument(
 		"--source",
 		default=".",
@@ -152,6 +156,26 @@ def resolve_static_dir(static_dir_value: str, source_path: Path) -> Path:
 		)
 
 	return resolved
+
+
+def validate_function_source(source_path: Path, function_source: str) -> str:
+	function_source_path = Path(function_source)
+	if function_source_path.is_absolute():
+		raise RuntimeError("--function-source must be relative to --source, not an absolute path.")
+
+	resolved = (source_path / function_source_path).resolve()
+	try:
+		resolved.relative_to(source_path)
+	except ValueError as exc:
+		raise RuntimeError("--function-source must remain inside --source directory.") from exc
+
+	if not resolved.exists() or not resolved.is_file():
+		raise RuntimeError(
+			f"Function source file not found: {resolved}. "
+			"Ensure it exists and is not excluded by .gcloudignore."
+		)
+
+	return function_source_path.as_posix()
 
 
 def run_cmd(cmd: List[str], dry_run: bool = False) -> None:
@@ -275,6 +299,8 @@ def build_deploy_command(args: argparse.Namespace, env_vars: Dict[str, str]) -> 
 		env_str = ",".join(f"{key}={value}" for key, value in sorted(env_vars.items()))
 		cmd.extend(["--set-env-vars", env_str])
 
+	cmd.extend(["--set-build-env-vars", f"GOOGLE_FUNCTION_SOURCE={args.function_source}"])
+
 	return cmd
 
 
@@ -294,6 +320,7 @@ def main() -> int:
 
 	source_path = resolve_source_path(args.source)
 	args.source = str(source_path)
+	args.function_source = validate_function_source(source_path, args.function_source)
 
 	env_vars = parse_env_pairs(args.env)
 	env_vars.setdefault("ENV_TYPE", "prod")

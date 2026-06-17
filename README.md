@@ -340,6 +340,7 @@ python deployment.py \
   --region us-central1 \
   --runtime python311 \
   --entry-point entry_point \
+  --function-source main.py \
   --source . \
   --bucket YOUR_STATIC_BUCKET \
   --allow-unauthenticated \

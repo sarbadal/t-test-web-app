@@ -1,26 +1,34 @@
-# Keep deployment package minimal and deterministic.
-# Start by ignoring everything, then allow only required runtime files.
-*
+# Cloud Function deployment ignore file.
 
-# Cloud Function entry module and dependency manifest
+# Exclude source control
+.git/
+.gitignore
+.gcloudignore
+
+# Exclude Python build artifacts
+**/__pycache__/
+**/*.py[cod]
+**/*.pyo
+**/*.pyd
+
+# Exclude local environment files
+.env
+.env.prod
+.venv/
+env/
+venv/
+
+# Exclude local project artifacts and noise
+deployment.sh
+programmatic_api_call.py
+sample_data/
+tests/
+db_init.py
+
+# Ensure required files are included
 !main.py
 !requirements.txt
-
-# Keep deployment helper in source package as requested
 !deployment.py
-
-# Include the full app package (routes, templates, static, models, utils, ml)
 !src/
-!src/**
-
-# Allow this file itself
-!.gcloudignore
-
-# Re-exclude local artifacts that should never be part of Cloud Function source
-src/**/__pycache__/
-src/**/*.py[cod]
-
-# Keep instance data in deployment package as requested
 !src/instance/
-!src/instance/**
 !src/instance/ttest_analysis.db
